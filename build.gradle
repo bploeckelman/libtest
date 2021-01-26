@@ -1,0 +1,25 @@
+plugins {
+    id 'java-library'
+    id "io.freefair.lombok" version "5.3.0"
+}
+
+sourceCompatibility = 8.0
+
+group 'zendo.games'
+version '0.1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://jitpack.io' }
+    jcenter()
+}
+
+dependencies {
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
+    implementation 'org.projectlombok:lombok:1.18.16'
+    implementation "org.mini2Dx:universal-tween-engine:$tweenEngineVersion"
+    implementation "org.mini2Dx:universal-tween-engine:$tweenEngineVersion:sources"
+}
