@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -650,7 +651,16 @@ public class Aseprite {
                 }
 
                 // update the pixels in the cel's pixmap
-                cel.image.getPixels().put(imageBytes.array());
+                // TODO: have to manually draw pixel at a time since Pixmap byte buffer puts are not emulated in GWT
+//                cel.image.getPixels().put(imageBytes.array());
+                Color color = new Color();
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        int index = x + y * width;
+                        Color.rgba8888ToColor(color, imageBytes.getInt(index));
+                        cel.image.drawPixel(x, y, color.toIntBits());
+                    }
+                }
             }
             // REFERENCE (this cel directly references a previous cel)
             else if (cel_type == 1) {
