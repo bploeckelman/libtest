@@ -48,7 +48,9 @@ public class Entity extends ListNode<Entity> {
         assert(world != null) : "Entity must be assigned to a World";
         for (Component component : components) {
             if (component.type == Component.Types.id(clazz)) {
-                return clazz.cast(component);
+                // note: can't use Class.cast() in gwt
+//                return clazz.cast(component);
+                return (T) (component);
             }
         }
         return null;

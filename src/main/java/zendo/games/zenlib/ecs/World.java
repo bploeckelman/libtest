@@ -66,12 +66,16 @@ public class World {
 
     public <T extends Component> T first(Class<T> clazz) {
         int type = Component.Types.id(clazz);
-        return clazz.cast(componentsAlive[type].first);
+        // note: can't use Class.cast() in gwt
+//        return clazz.cast(componentsAlive[type].first);
+        return (T) (componentsAlive[type].first);
     }
 
     public <T extends Component> T last(Class<T> clazz) {
         int type = Component.Types.id(clazz);
-        return clazz.cast(componentsAlive[type].last);
+        // note: can't use Class.cast() in gwt
+//        return clazz.cast(componentsAlive[type].last);
+        return (T) (componentsAlive[type].last);
     }
 
     public <T extends Component> T add(Entity entity, T component, Class<T> clazz) {
@@ -92,7 +96,9 @@ public class World {
         // instantiate a new instance
         T instance = null;
         if (cache.first != null) {
-            instance = clazz.cast(cache.first);
+            // note: can't use Class.cast() in gwt
+//            instance = clazz.cast(cache.first);
+            instance = (T) (cache.first);
             cache.remove(instance);
         } else {
             try {
