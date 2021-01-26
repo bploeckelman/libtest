@@ -2,7 +2,6 @@ package zendo.games.zenlib.assets;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import lombok.var;
 import zendo.games.zenlib.utils.RectI;
 
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ public class Sprite {
 
         public float duration() {
             float d = 0;
-            for (var frame : frames) {
+            for (Frame frame : frames) {
                 d += frame.duration;
             }
             return d;
@@ -54,7 +53,7 @@ public class Sprite {
     }
 
     public Anim getAnimation(String name) {
-        for (var anim : animations) {
+        for (Anim anim : animations) {
             if (anim.name.equals(name)) {
                 return anim;
             }

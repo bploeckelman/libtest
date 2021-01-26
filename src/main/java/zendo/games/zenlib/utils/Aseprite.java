@@ -6,16 +6,13 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.GdxRuntimeException;
-import lombok.var;
 import zendo.games.zenlib.assets.Sprite;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -253,7 +250,7 @@ public class Aseprite {
      *         and references for how to find the TextureRegions packed by the PixmapPacker
      */
     public static SpriteInfo loadAndPack(PixmapPacker packer, String path) {
-        var info = new SpriteInfo();
+        SpriteInfo info = new SpriteInfo();
         {
             info.path = path;
             info.name = path.subSequence(path.lastIndexOf('/') + 1, path.indexOf(".ase")).toString();
@@ -261,8 +258,8 @@ public class Aseprite {
             info.anim_frame_infos = new HashMap<>();
 
             // build animation info for each tag
-            for (var anim_tag : info.aseprite.tags) {
-                var num_frames = anim_tag.to - anim_tag.from + 1;
+            for (Tag anim_tag : info.aseprite.tags) {
+                int num_frames = anim_tag.to - anim_tag.from + 1;
 
                 // build frame infos for each frame of this animation
                 info.anim_frame_infos.putIfAbsent(anim_tag.name, new SpriteInfo.AnimFrameInfo[num_frames]);
@@ -273,16 +270,16 @@ public class Aseprite {
                     // note:
                     //  the string used for atlas.findRegion must _not_ include the frame index
                     //  while the string used to pack a region into the atlas _must_ include the frame index
-                    var frame = info.aseprite.frames.get(frame_index);
-                    var frame_region_name = info.name + "-" + anim_tag.name;
-                    var frame_region_name_w_index = frame_region_name + "_" + i;
-                    var frame_duration = frame.duration;
+                    Frame frame = info.aseprite.frames.get(frame_index);
+                    String frame_region_name = info.name + "-" + anim_tag.name;
+                    String frame_region_name_w_index = frame_region_name + "_" + i;
+                    int frame_duration = frame.duration;
 
                     // pack the frame image into the texture atlas
                     packer.pack(frame_region_name_w_index, frame.image);
 
                     // save the info needed to build the sprite's animation for this tag/frame
-                    var anim_frame_infos = info.anim_frame_infos.get(anim_tag.name);
+                    SpriteInfo.AnimFrameInfo[] anim_frame_infos = info.anim_frame_infos.get(anim_tag.name);
                     anim_frame_infos[i] = new SpriteInfo.AnimFrameInfo();
                     anim_frame_infos[i].region_name = frame_region_name;
                     anim_frame_infos[i].region_index = i;
@@ -292,8 +289,8 @@ public class Aseprite {
             }
 
             // dispose Aseprite Pixmap images since they are now packed into the texture atlas
-            for (var frame : info.aseprite.frames) {
-                for (var cel : frame.cels) {
+            for (Frame frame : info.aseprite.frames) {
+                for (Cel cel : frame.cels) {
                     cel.image.dispose();
                 }
                 frame.image.dispose();
@@ -317,9 +314,9 @@ public class Aseprite {
      */
     private static RectI extract_hitbox_data(SpriteInfo info, Frame frame) {
         // check whether a hitbox layer exists
-        var hitbox_layer_index = -1;
+        int hitbox_layer_index = -1;
         for (int layer_index = 0; layer_index < info.aseprite.layers.size(); layer_index++) {
-            var layer = info.aseprite.layers.get(layer_index);
+            Layer layer = info.aseprite.layers.get(layer_index);
             if ("hitbox".equals(layer.name)) {
                 hitbox_layer_index = layer_index;
                 break;
@@ -335,7 +332,7 @@ public class Aseprite {
         int pivot_x = 0;
         int pivot_y = 0;
         int slice_h = 0;
-        var slice = info.aseprite.slices.get(0);
+        Slice slice = info.aseprite.slices.get(0);
         if (slice != null) {
             // flip slice pivot point to be y-up to match in-game reference with aseprite pivot point
             slice_h = slice.height;
@@ -349,7 +346,7 @@ public class Aseprite {
         //  but we're flipping y to make the slice pivot point look correct in game,
         //  so some extra work needs to be done to get the correct cel (x,y) for extents,
         //  then those extent values need to be shifted to take into account the pivot point
-        for (var cel : frame.cels) {
+        for (Cel cel : frame.cels) {
             if (cel.layer_index == hitbox_layer_index) {
                 // check whether there are any non-transparent pixels in this cel
                 if (cel.image.getWidth() == 0 || cel.image.getHeight() == 0) {
@@ -357,13 +354,13 @@ public class Aseprite {
                 }
 
                 // flip cel to y-up, relative to slice bounds (which should just match image bounds)
-                var hitbox_extents = RectI.at(
+                RectI hitbox_extents = RectI.at(
                         cel.x, slice_h - cel.y - cel.image.getHeight(),
                         cel.image.getWidth(), cel.image.getHeight()
                 );
 
                 // calculate offsets from extents and pivot position
-                var hitbox_offsets = RectI.at(
+                RectI hitbox_offsets = RectI.at(
                         hitbox_extents.x - pivot_x,
                         hitbox_extents.y - pivot_y,
                         hitbox_extents.w,
@@ -390,37 +387,36 @@ public class Aseprite {
      * @return a Sprite object populated based on data specified in SpriteInfo
      */
     public static Sprite createSprite(SpriteInfo info, TextureAtlas atlas) {
-        var sprite = new Sprite();
+        Sprite sprite = new Sprite();
         {
             // extract properties from aseprite
             sprite.name = info.name;
             sprite.origin.set(0, 0);
             if (info.aseprite.slices.size() > 0 && info.aseprite.slices.get(0).has_pivot) {
-                var slice = info.aseprite.slices.get(0);
+                Slice slice = info.aseprite.slices.get(0);
                 // flip slice pivot point to be y-up to match in-game reference with aseprite pivot point
                 sprite.origin.set(slice.pivot.x, slice.pivot.y - slice.height);
             }
 
             // build sprite animations
-            for (var anim_name : info.anim_frame_infos.keySet()) {
-                var anim_frame_info = info.anim_frame_infos.get(anim_name);
+            for (String anim_name : info.anim_frame_infos.keySet()) {
+                SpriteInfo.AnimFrameInfo[] anim_frame_info = info.anim_frame_infos.get(anim_name);
 
                 // build frames for animation
-                var anim_frames = new Sprite.Frame[anim_frame_info.length];
+                Sprite.Frame[] anim_frames = new Sprite.Frame[anim_frame_info.length];
                 for (int i = 0; i < anim_frame_info.length; i++) {
-                    var frame_info = anim_frame_info[i];
-                    var frame_region = atlas.findRegion(frame_info.region_name, frame_info.region_index);
-                    var frame_duration = anim_frame_info[i].duration;
+                    SpriteInfo.AnimFrameInfo frame_info = anim_frame_info[i];
+                    TextureRegion frame_region = atlas.findRegion(frame_info.region_name, frame_info.region_index);
+                    float frame_duration = anim_frame_info[i].duration;
                     anim_frames[i] = new Sprite.Frame(frame_region, frame_duration / 1000f);
 
-                    // TODO: may need to flip-y on this depending how we load it in loadAndPack()
                     if (frame_info.hitbox != null) {
                         anim_frames[i].hitbox = frame_info.hitbox;
                     }
                 }
 
                 // build animation from frames
-                var anim = new Sprite.Anim(anim_name, anim_frames);
+                Sprite.Anim anim = new Sprite.Anim(anim_name, anim_frames);
 
                 // add to sprite
                 sprite.animations.add(anim);
@@ -440,8 +436,8 @@ public class Aseprite {
         }
 
         // create byte buffer from file contents and set endianness for .ase files
-        var bytes = file.readBytes();
-        var stream = ByteBuffer.wrap(bytes);
+        byte[] bytes = file.readBytes();
+        ByteBuffer stream = ByteBuffer.wrap(bytes);
         stream.order(ByteOrder.LITTLE_ENDIAN);
 
         int frame_count = 0;
@@ -452,16 +448,16 @@ public class Aseprite {
             stream.getInt();
 
             // extract and validate magic number
-            var magic = stream.getShort();
+            short magic = stream.getShort();
             if (magic != (short)0xA5E0) {
                 throw new GdxRuntimeException("File is not a valid Aseprite file (bad header magic): " + file.path());
             }
 
             // extract main data
             frame_count = stream.getShort();
-            width = stream.getShort();
+            width  = stream.getShort();
             height = stream.getShort();
-            mode = Modes.fromValue(stream.getShort() / 8);
+            mode   = Modes.fromValue(stream.getShort() / 8);
 
             // don't care about other info, extract and drop on the floor
             stream.getInt();   // flags
@@ -483,24 +479,24 @@ public class Aseprite {
 
         // parse frames
         for (int i = 0; i < frame_count; i++) {
-            var frameStart = stream.position();
-            var frameSize = stream.getInt();
-            var frameEnd = frameStart + frameSize;
-            var chunks = 0;
+            int frameStart = stream.position();
+            int frameSize  = stream.getInt();
+            int frameEnd   = frameStart + frameSize;
+            int chunks = 0;
 
             // frame header
             {
                 // extract and validate magic number
-                var magic = stream.getShort();
+                short magic = stream.getShort();
                 if (magic != (short)0xF1FA) {
                     throw new GdxRuntimeException("File is not a valid Aseprite file (bad chunk magic): " + file.path());
                 }
 
                 // extract chunk counts (both old and new) and frame duration
-                var old_chunk_count = stream.getShort();
-                frames.get(i).duration    = stream.getShort();
+                short old_chunk_count  = stream.getShort();
+                frames.get(i).duration = stream.getShort();
                 stream.position(stream.position() + 2); // skip reserved bytes
-                var new_chunk_count   = stream.getInt();
+                int new_chunk_count    = stream.getInt();
 
                 // set number of chunks, using the appropriate chunk count for the file
                 if (old_chunk_count == (short)0xFFFF) {
@@ -515,9 +511,9 @@ public class Aseprite {
 
             // frame chunks
             for (int j = 0; j < chunks; j++) {
-                var chunkStart = stream.position();
-                var chunkEnd = chunkStart + stream.getInt();
-                var chunkType = Chunks.fromValue(stream.getShort());
+                int chunkStart  = stream.position();
+                int chunkEnd    = chunkStart + stream.getInt();
+                Chunks chunkType = Chunks.fromValue(stream.getShort());
 
                 switch (chunkType) {
                     case Layer:     parse_layer     (stream, i);           break;
@@ -540,7 +536,7 @@ public class Aseprite {
     }
 
     private void parse_layer(ByteBuffer stream, int frame) {
-        var layer = new Layer();
+        Layer layer = new Layer();
         {
             layer.flags = stream.getShort();
             layer.visible     = ((layer.flags & layer_flag_visible) == layer_flag_visible);
@@ -552,8 +548,8 @@ public class Aseprite {
             layer.alpha       = stream.get();
             stream.position(stream.position() + 3); // skip reserved bytes
 
-            var nameLength = stream.getShort();
-            var nameBytes = new byte[nameLength];
+            short nameLength = stream.getShort();
+            byte[] nameBytes = new byte[nameLength];
             stream.get(nameBytes, 0, nameLength);
             layer.name = new String(nameBytes);
 
@@ -566,12 +562,12 @@ public class Aseprite {
     }
 
     private void parse_cel(ByteBuffer stream, int frameIndex, int maxPosition) {
-        var frame = frames.get(frameIndex);
+        Frame frame = frames.get(frameIndex);
         if (frame.cels == null) {
             frame.cels = new ArrayList<>();
         }
 
-        var cel = new Cel();
+        Cel cel = new Cel();
         {
             cel.layer_index = stream.getShort();
             cel.x = stream.getShort();
@@ -579,18 +575,18 @@ public class Aseprite {
             cel.alpha = stream.get();
             cel.linked_frame_index = -1;
 
-            var cel_type = stream.getShort();
+            short cel_type = stream.getShort();
             stream.position(stream.position() + 7); // skip reserved bytes
 
             // RAW or DEFLATE
             if (cel_type == 0 || cel_type == 2) {
-                var width  = stream.getShort();
-                var height = stream.getShort();
-                var num_image_bytes = width * height * mode.value;
+                short width  = stream.getShort();
+                short height = stream.getShort();
+                int num_image_bytes = width * height * mode.value;
 
                 // create the backing pixmap
                 cel.image = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-                var imageBytes = ByteBuffer.allocate(num_image_bytes);
+                ByteBuffer imageBytes = ByteBuffer.allocate(num_image_bytes);
 
                 // load pixels in rgba format
                 // RAW
@@ -603,14 +599,14 @@ public class Aseprite {
                     try {
                         // note - in noel's parser he clamps this value at INT32_MAX
                         //        not sure how the value could get bigger since its the diff of 2 ints
-                        var size = maxPosition - stream.position();
-                        var buffer = new byte[size];
+                        int size = maxPosition - stream.position();
+                        byte[] buffer = new byte[size];
                         stream.get(buffer, 0, size);
 
                         // sizeof Color in bytes = 4
-                        var output_length = width * height * 4;
+                        int output_length = width * height * 4;
 
-                        var inflater = new Inflater();
+                        Inflater inflater = new Inflater();
                         inflater.setInput(buffer, 0, size);
                         inflater.inflate(imageBytes.array(), 0, output_length);
                     } catch (DataFormatException e) {
@@ -633,19 +629,19 @@ public class Aseprite {
                 }
                 else if (mode == Modes.indexed) {
                     Gdx.app.log(tag, "possibly broken: converting cel pixels to indexed colors....");
-                    var src = imageBytes;
-                    var dst = imageBytes;
+                    ByteBuffer src = imageBytes;
+                    ByteBuffer dst = imageBytes;
                     for (int i = src.array().length - 1; i >= 0; i -= 4) {
                         // TODO: double check byte ordering, this is a bit oof
                         // convert source bytes into integer palette index
-                        var srcBytes = new byte[] {src.get(i), src.get(i-1), src.get(i-2), src.get(i-3)};
-                        var palette_index = ByteBuffer.wrap(srcBytes).getInt();
+                        byte[] srcBytes = new byte[] {src.get(i), src.get(i-1), src.get(i-2), src.get(i-3)};
+                        int palette_index = ByteBuffer.wrap(srcBytes).getInt();
 
                         // retrieve the indexed color from the previously loaded palette
-                        var indexed_color = palette.get(palette_index);
+                        Color indexed_color = palette.get(palette_index);
 
                         // convert indexed color to int bytes and write back to dst
-                        var result = ByteBuffer.allocate(4).putInt(indexed_color.toIntBits()).array();
+                        byte[] result = ByteBuffer.allocate(4).putInt(indexed_color.toIntBits()).array();
                         dst.put(i - 0, result[0]);
                         dst.put(i - 1, result[1]);
                         dst.put(i - 2, result[2]);
@@ -681,15 +677,15 @@ public class Aseprite {
 
     private void parse_palette(ByteBuffer stream, int frame) {
         stream.getInt(); // size
-        var start = stream.getInt();
-        var end   = stream.getInt();
+        int start = stream.getInt();
+        int end   = stream.getInt();
         stream.position(stream.position() + 8); // skip reserved bytes
 
-        var newSize = palette.size() + (end - start) + 1;
+        int newSize = palette.size() + (end - start) + 1;
         palette.ensureCapacity(newSize);
 
         for (int p = 0, len = (end - start) + 1; p < len; p++) {
-            var hasName = stream.getShort();
+            short hasName = stream.getShort();
 
             // colors are stored in big endian order
             // so temporarily reverse byte order to read the color out
@@ -706,12 +702,12 @@ public class Aseprite {
 
     private void parse_user_data(ByteBuffer stream, int frame) {
         if (lastUserdata != null) {
-            var flags = stream.getInt();
+            int flags = stream.getInt();
 
             // has text
             if ((flags & (1 << 0)) != 0) {
-                var textLength = stream.getShort();
-                var textBytes = new byte[textLength];
+                short textLength = stream.getShort();
+                byte[] textBytes = new byte[textLength];
                 stream.get(textBytes, 0, textLength);
                 lastUserdata.text = new String(textBytes);
             }
@@ -728,7 +724,7 @@ public class Aseprite {
     }
 
     private void parse_tag(ByteBuffer stream, int frame) {
-        var num_tags = stream.getShort();
+        short num_tags = stream.getShort();
         stream.position(stream.position() + 8); // skip reserved bytes
 
         for (int i = 0; i < num_tags; i++) {
@@ -749,8 +745,8 @@ public class Aseprite {
                 tag.color.a = 1f;
                 stream.order(ByteOrder.LITTLE_ENDIAN);
 
-                var nameLength = stream.getShort();
-                var nameBytes = new byte[nameLength];
+                short nameLength = stream.getShort();
+                byte[] nameBytes = new byte[nameLength];
                 stream.get(nameBytes, 0, nameLength);
                 tag.name = new String(nameBytes);
             }
@@ -759,14 +755,14 @@ public class Aseprite {
     }
 
     private void parse_slice(ByteBuffer stream, int frame) {
-        var num_slices = stream.getInt();
-        var flags      = stream.getInt();
+        int num_slices = stream.getInt();
+        int flags      = stream.getInt();
         stream.getInt(); // skip reserved bytes
 
-        var nameLength = stream.getShort();
-        var nameBytes = new byte[nameLength];
+        short nameLength = stream.getShort();
+        byte[] nameBytes = new byte[nameLength];
         stream.get(nameBytes, 0, nameLength);
-        var name = new String(nameBytes);
+        String name = new String(nameBytes);
 
         for (int i = 0; i < num_slices; i++) {
             Slice slice = new Slice();

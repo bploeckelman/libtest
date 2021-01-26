@@ -1,6 +1,5 @@
 package zendo.games.zenlib.ecs;
 
-import lombok.var;
 import zendo.games.zenlib.utils.Point;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class Entity extends ListNode<Entity> {
 
     public <T extends Component> T get(Class<T> clazz) {
         assert(world != null) : "Entity must be assigned to a World";
-        for (var component : components) {
+        for (Component component : components) {
             if (component.type == Component.Types.id(clazz)) {
                 return clazz.cast(component);
             }

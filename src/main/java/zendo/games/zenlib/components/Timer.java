@@ -1,6 +1,5 @@
 package zendo.games.zenlib.components;
 
-import lombok.var;
 import zendo.games.zenlib.ecs.Component;
 
 public class Timer extends Component {
@@ -33,7 +32,7 @@ public class Timer extends Component {
     public <T extends Component> void copyFrom(T other) {
         super.copyFrom(other);
         if (other instanceof Timer) {
-            var timer = (Timer) other;
+            Timer timer = (Timer) other;
             this.duration = timer.duration;
             this.onEnd    = timer.onEnd;
         }

@@ -1,6 +1,5 @@
 package zendo.games.zenlib.components;
 
-import lombok.var;
 import zendo.games.zenlib.ecs.Component;
 import zendo.games.zenlib.utils.Time;
 
@@ -34,7 +33,7 @@ public class Hurtable extends Component {
     public <T extends Component> void copyFrom(T other) {
         super.copyFrom(other);
         if (other instanceof Hurtable) {
-            var hurtable = (Hurtable) other;
+            Hurtable hurtable = (Hurtable) other;
             this.collider        = hurtable.collider;
             this.onHurt          = hurtable.onHurt;
             this.hurtBy          = hurtable.hurtBy;

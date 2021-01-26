@@ -3,7 +3,6 @@ package zendo.games.zenlib.ecs;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.reflect.ClassReflection;
 import com.badlogic.gdx.utils.reflect.ReflectionException;
-import lombok.var;
 import zendo.games.zenlib.utils.Point;
 
 import java.util.ArrayList;
@@ -87,8 +86,8 @@ public class World {
         if (componentsAlive[type] == null) {
             componentsAlive[type] = new Pool<>();
         }
-        var cache = componentsCache[type];
-        var alive = componentsAlive[type];
+        Pool<Component> cache = componentsCache[type];
+        Pool<Component> alive = componentsAlive[type];
 
         // instantiate a new instance
         T instance = null;
@@ -160,13 +159,13 @@ public class World {
 
     public void destroy(Component component) {
         if (component != null && component.entity != null && component.entity.world == this) {
-            var type = component.type;
+            int type = component.type;
 
             // mark destroyed
             component.destroyed();
 
             // remove from entity
-            var list = component.entity.components;
+            List<Component> list = component.entity.components;
             for (int i = list.size() - 1; i >= 0; i--) {
                 if (list.get(i) == component) {
                     list.remove(i);
@@ -183,7 +182,7 @@ public class World {
     public void clear() {
         Entity entity = firstEntity();
         while (entity != null) {
-            var next = entity.next();
+            Entity next = entity.next();
             destroyEntity(entity);
             entity = next;
         }
@@ -191,9 +190,9 @@ public class World {
 
     public void update(float dt) {
         for (int i = 0; i < Component.Types.count(); i++) {
-            var component = componentsAlive[i].first;
+            Component component = componentsAlive[i].first;
             while (component != null) {
-                var next = component.next();
+                Component next = component.next();
                 if (component.active && component.entity.active) {
                     component.update(dt);
                 }
@@ -212,7 +211,7 @@ public class World {
 
         // assemble list
         for (int i = 0; i < Component.Types.count(); i++) {
-            var component = componentsAlive[i].first;
+            Component component = componentsAlive[i].first;
             while (component != null) {
                 if (component.visible && component.entity.visible) {
                     componentsVisible.add(component);
@@ -225,7 +224,7 @@ public class World {
         componentsVisible.sort(Comparator.comparingInt(Component::depth));
 
         // render them
-        for (var component : componentsVisible) {
+        for (Component component : componentsVisible) {
             component.render(batch);
         }
 

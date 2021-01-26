@@ -2,7 +2,6 @@ package zendo.games.zenlib.components;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import lombok.var;
 import zendo.games.zenlib.ecs.Component;
 
 public class Tilemap extends Component {
@@ -31,7 +30,7 @@ public class Tilemap extends Component {
     public <T extends Component> void copyFrom(T other) {
         super.copyFrom(other);
         if (other instanceof Tilemap) {
-            var tilemap = (Tilemap) other;
+            Tilemap tilemap = (Tilemap) other;
             this.tileSize = tilemap.tileSize;
             this.columns  = tilemap.columns;
             this.rows     = tilemap.rows;

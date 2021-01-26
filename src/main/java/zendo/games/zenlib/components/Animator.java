@@ -2,10 +2,10 @@ package zendo.games.zenlib.components;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import lombok.var;
 import zendo.games.zenlib.assets.Content;
 import zendo.games.zenlib.assets.Sprite;
 import zendo.games.zenlib.ecs.Component;
+import zendo.games.zenlib.utils.RectI;
 
 public class Animator extends Component {
 
@@ -46,7 +46,7 @@ public class Animator extends Component {
     public <T extends Component> void copyFrom(T other) {
         super.copyFrom(other);
         if (other instanceof Animator) {
-            var animator = (Animator) other;
+            Animator animator = (Animator) other;
             this.scale.set(animator.scale);
             this.rotation       = animator.rotation;
             this.speed          = animator.speed;
@@ -69,7 +69,7 @@ public class Animator extends Component {
     }
 
     public Sprite.Frame frame() {
-        var anim = animation();
+        Sprite.Anim anim = animation();
         return anim.frames.get(frameIndex);
     }
 
@@ -88,9 +88,9 @@ public class Animator extends Component {
                     frameCounter = 0;
 
                     // update collider if appropriate
-                    var collider = get(Collider.class);
+                    Collider collider = get(Collider.class);
                     if (collider != null && collider.shape() == Collider.Shape.rect) {
-                        var hitbox = frame().hitbox;
+                        RectI hitbox = frame().hitbox;
                         if (hitbox != null) {
                             collider.setRect(hitbox);
                         }
@@ -105,8 +105,8 @@ public class Animator extends Component {
     public void update(float dt) {
         if (!inValidState()) return;
 
-        var anim = sprite.animations.get(animationIndex);
-        var frame = anim.frames.get(frameIndex);
+        Sprite.Anim anim = sprite.animations.get(animationIndex);
+        Sprite.Frame frame = anim.frames.get(frameIndex);
 
         // increment frame counter
         frameCounter += speed * dt;
@@ -129,8 +129,8 @@ public class Animator extends Component {
     public void render(SpriteBatch batch) {
         if (!inValidState()) return;
 
-        var anim = sprite.animations.get(animationIndex);
-        var frame = anim.frames.get(frameIndex);
+        Sprite.Anim anim = sprite.animations.get(animationIndex);
+        Sprite.Frame frame = anim.frames.get(frameIndex);
 
         batch.draw(frame.image,
                 entity().position.x - sprite.origin.x,

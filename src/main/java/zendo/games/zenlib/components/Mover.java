@@ -1,7 +1,6 @@
 package zendo.games.zenlib.components;
 
 import com.badlogic.gdx.math.Vector2;
-import lombok.var;
 import zendo.games.zenlib.ecs.Component;
 import zendo.games.zenlib.ecs.Mask;
 import zendo.games.zenlib.utils.Calc;
@@ -48,7 +47,7 @@ public class Mover extends Component {
     public <T extends Component> void copyFrom(T other) {
         super.copyFrom(other);
         if (other instanceof Mover) {
-            var mover = (Mover) other;
+            Mover mover = (Mover) other;
             this.remainder.set(mover.remainder);
             this.speed.set(mover.remainder);
             this.collider = mover.collider;

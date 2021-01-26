@@ -1,7 +1,6 @@
 package zendo.games.zenlib.assets;
 
 import com.badlogic.gdx.utils.Array;
-import lombok.var;
 
 public abstract class Content {
 
@@ -16,7 +15,7 @@ public abstract class Content {
     }
 
     public static Sprite findSprite(String name) {
-        for (var sprite : sprites) {
+        for (Sprite sprite : sprites) {
             if (sprite.name.equals(name)) {
                 return sprite;
             }
