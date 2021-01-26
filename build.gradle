@@ -20,6 +20,7 @@ dependencies {
     api "com.badlogicgames.gdx:gdx:$gdxVersion"
     api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
     implementation 'org.projectlombok:lombok:1.18.16'
+    implementation 'org.projectlombok:lombok:1.18.16:sources'
     implementation "org.mini2Dx:universal-tween-engine:$tweenEngineVersion"
     implementation "org.mini2Dx:universal-tween-engine:$tweenEngineVersion:sources"
 }
