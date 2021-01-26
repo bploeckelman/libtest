@@ -607,6 +607,7 @@ public class Aseprite {
                         // sizeof Color in bytes = 4
                         int output_length = width * height * 4;
 
+                        // TODO: possibly the last thing we have to adapt for GWT
                         Inflater inflater = new Inflater();
                         inflater.setInput(buffer, 0, size);
                         inflater.inflate(imageBytes.array(), 0, output_length);
@@ -651,16 +652,16 @@ public class Aseprite {
                 }
 
                 // update the pixels in the cel's pixmap
+                cel.image.getPixels().put(imageBytes);
                 // TODO: have to manually draw pixel at a time since Pixmap byte buffer puts are not emulated in GWT
-//                cel.image.getPixels().put(imageBytes.array());
-                Color color = new Color();
-                for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < height; y++) {
-                        int index = x + y * width;
-                        Color.rgba8888ToColor(color, imageBytes.getInt(index));
-                        cel.image.drawPixel(x, y, color.toIntBits());
-                    }
-                }
+//                Color color = new Color();
+//                for (int x = 0; x < width; x++) {
+//                    for (int y = 0; y < height; y++) {
+//                        int index = x + y * width;
+//                        Color.rgba8888ToColor(color, imageBytes.getInt(index));
+//                        cel.image.drawPixel(x, y, color.toIntBits());
+//                    }
+//                }
             }
             // REFERENCE (this cel directly references a previous cel)
             else if (cel_type == 1) {
