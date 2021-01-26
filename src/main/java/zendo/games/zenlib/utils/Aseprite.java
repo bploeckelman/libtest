@@ -650,7 +650,7 @@ public class Aseprite {
                 }
 
                 // update the pixels in the cel's pixmap
-                cel.image.getPixels().put(imageBytes);
+                cel.image.getPixels().put(imageBytes.array());
             }
             // REFERENCE (this cel directly references a previous cel)
             else if (cel_type == 1) {
